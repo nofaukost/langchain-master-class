@@ -1,6 +1,6 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
+# from langchain_ollama import ChatOllama
 from langchain_core.output_parsers import StrOutputParser
 
 information = """
@@ -26,8 +26,8 @@ if __name__ == "__main__":
     
     print(res_openai)
     
-    llm_ollama = ChatOllama(model="llama3.2")
-    chain_ollama = summary_prompt_template | llm_ollama | StrOutputParser()
-    res_ollama = chain_ollama.invoke({"information": information})
+    # llm_ollama = ChatOllama(model="llama3.2")
+    # chain_ollama = summary_prompt_template | llm_ollama | StrOutputParser()
+    # res_ollama = chain_ollama.invoke({"information": information})
     
-    print(res_ollama)
+    # print(res_ollama)
