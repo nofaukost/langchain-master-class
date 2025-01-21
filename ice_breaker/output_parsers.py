@@ -13,4 +13,3 @@ class Summary(BaseModel):
         }
 
 summary_parser = PydanticOutputParser(pydantic_object=Summary)
-

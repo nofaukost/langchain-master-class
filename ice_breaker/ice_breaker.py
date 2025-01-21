@@ -5,10 +5,13 @@ from langchain_openai import ChatOpenAI
 from third_parties.linkedin import scrape_linkedin_profile
 
 from agents.linkedin_lookup import linkedin_lookup_agent
-from output_parsers import summary_parser
+from output_parsers import summary_parser, Summary
+
+from typing import Tuple
+
 from dotenv import load_dotenv
 
-def ice_breaker_with_name(name: str) -> str:
+def ice_breaker_with_name(name: str) -> Tuple[Summary, str]:
     linkedin_profile_url = linkedin_lookup_agent(name)
     linkedin_data = scrape_linkedin_profile(linkedin_profile_url=linkedin_profile_url, mock=True)
     
@@ -27,7 +30,7 @@ def ice_breaker_with_name(name: str) -> str:
     llm_openai = ChatOpenAI(temperature=0, model="gpt-3.5-turbo")
     # chain_openai = summary_prompt_template | llm_openai | StrOutputParser()
     chain_openai = summary_prompt_template | llm_openai | summary_parser
-    res_openai = chain_openai.invoke({"information": linkedin_data})
+    res_openai: Summary = chain_openai.invoke({"information": linkedin_data})
     
     # llm_ollama = ChatOllama(model="llama3.2")
     # chain_ollama = summary_prompt_template | llm_ollama | StrOutputParser()
@@ -35,7 +38,7 @@ def ice_breaker_with_name(name: str) -> str:
     
     print(res_openai)
     
-    return res_openai
+    return res_openai, linkedin_data.get("profile_pic_url")
     
 if __name__ == "__main__":
     load_dotenv()
