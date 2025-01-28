@@ -7,7 +7,7 @@ from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.schema import AgentAction, AgentFinish
 from typing import Union, List
 from langchain.tools import Tool
-
+from langchain.agents.format_scratchpad.log import format_log_to_str
 load_dotenv()
 
 @tool
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         Begin!
 
         Question: {input}
-        Thought: 
+        Thought: {agent_scratchpad}
     """
     
     prompt = PromptTemplate(template=template).partial(
@@ -56,9 +56,24 @@ if __name__ == "__main__":
     )
     
     llm = ChatOpenAI(temperature=0, stop = ["\nObservation", "Observation"])
-    agent = {"input": lambda x: x["input"]} | prompt | llm | ReActSingleInputOutputParser()
+    intermediate_steps = []
     
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke({"input": "What is the text length of 'Dog'?"})
+    agent = (
+        {
+            "input": lambda x: x["input"],
+            "agent_scratchpad": lambda x : format_log_to_str(x["agent_scratchpad"]),
+        }
+        | prompt
+        | llm
+        | ReActSingleInputOutputParser()
+    )
+    
+    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+        {
+            "input": "What is the text length of 'Dog'?",
+            "agent_scratchpad": intermediate_steps,
+        }
+    )
     
     print(agent_step)
     
@@ -69,4 +84,16 @@ if __name__ == "__main__":
         
         observation = tool_to_use.func(str(tool_input))
         print(f"Observation: {observation}")
+        
+        intermediate_steps.append((agent_step, str(observation)))
     
+    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+        {
+            "input": "What is the text length of 'Dog'?",
+            "agent_scratchpad": intermediate_steps,
+        }
+    )
+    
+    if isinstance(agent_step, AgentFinish):
+        print(agent_step.return_values)
+
